@@ -52,8 +52,7 @@ def produce_evaluation_file(dataset, model, device, save_path):
         
         with open(save_path, 'a+') as fh:
             for f, cm in zip(fname_list,score_list):
-                fh.write('{} {}\n'.format(f, cm))
-        fh.close()   
+                fh.write('{} {}\n'.format(f, cm))   
     print('Scores saved to {}'.format(save_path))
 
 
@@ -147,7 +146,7 @@ if __name__ == '__main__':
     dir_yaml = os.path.splitext('model_config_RawNet')[0] + '.yaml'
 
     with open(dir_yaml, 'r') as f_yaml:
-            parser1 = yaml.load(f_yaml)
+            parser1 = yaml.safe_load(f_yaml)
 
     if not os.path.exists('models'):
         os.mkdir('models')
@@ -194,7 +193,7 @@ if __name__ == '__main__':
 
     # evaluation 
     if args.eval:
-        file_eval = genSpoof_list( dir_meta =  os.path.join(args.protocols_path+'{}_cm_protocols/{}.cm.eval.trl.txt'.format(prefix,prefix_2021)),is_train=False,is_eval=True)
+        file_eval = genSpoof_list( dir_meta =  os.path.join(args.protocols_path, '{}_cm_protocols/{}.cm.eval.trl.txt'.format(prefix,prefix_2021)),is_train=False,is_eval=True)
         print('no. of eval trials',len(file_eval))
         eval_set=Dataset_ASVspoof2021_eval(list_IDs = file_eval,base_dir = os.path.join(args.database_path+'ASVspoof2021_{}_eval/'.format(args.track)))
         produce_evaluation_file(eval_set, model, device, args.eval_output)
@@ -202,27 +201,27 @@ if __name__ == '__main__':
     
     # define train dataloader
 
-    d_label_trn,file_train = genSpoof_list( dir_meta =  os.path.join(args.protocols_path+'{}_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt'.format(prefix)),is_train=True,is_eval=False)
+    d_label_trn,file_train = genSpoof_list( dir_meta =  os.path.join(args.protocols_path, '{}_cm_protocols/ASVspoof2019.LA.cm.train.trn.txt'.format(prefix)),is_train=True,is_eval=False)
     print('no. of training trials',len(file_train))
-    
+
     #train_set=Dataset_ASVspoof2019_train(list_IDs = file_train,labels = d_label_trn,base_dir = os.path.join(args.database_path+'ASVspoof2019_{}_train/'.format(args.track)))
     # Note we bypass the reference to the track to train on LA instead of on DF (there is no provided training or dev data for DF)
     train_set=Dataset_ASVspoof2019_train(list_IDs = file_train,labels = d_label_trn,base_dir = os.path.join(args.database_path+'ASVspoof2019_LA_train/'))
 
     train_loader = DataLoader(train_set, batch_size=args.batch_size, shuffle=True,drop_last = True)
-    
+
     del train_set,d_label_trn
     
     # define validation dataloader
 
     # Note we bypass the reference to the track to validate on LA instead of on DF (there is no provided training or dev data for DF)
-    d_label_dev,file_dev = genSpoof_list( dir_meta =  os.path.join(args.protocols_path+'{}_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt'.format(prefix)),is_train=False,is_eval=False)
+    d_label_dev,file_dev = genSpoof_list( dir_meta =  os.path.join(args.protocols_path, '{}_cm_protocols/ASVspoof2019.LA.cm.dev.trl.txt'.format(prefix)),is_train=False,is_eval=False)
     print('no. of validation trials',len(file_dev))
 
     # Note we bypass the reference to the track to train on LA instead of on DF (there is no provided training or dev data for DF)
     dev_set = Dataset_ASVspoof2019_train(list_IDs = file_dev,
-		labels = d_label_dev,
-		base_dir = os.path.join(args.database_path+'ASVspoof2019_LA_dev/'))
+  labels = d_label_dev,
+  base_dir = os.path.join(args.database_path+'ASVspoof2019_LA_dev/'))
     dev_loader = DataLoader(dev_set, batch_size=args.batch_size, shuffle=False)
     del dev_set,d_label_dev
 
